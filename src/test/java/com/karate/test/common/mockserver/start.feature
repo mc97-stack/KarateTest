@@ -1,8 +1,8 @@
 @startMockserver
-  Feature:
+Feature:
 
-    Background:
-      * call read('this:../hooks/scriptDependencies.feature')
+  Background:
+    * call read('this:../hooks/scriptDependencies.feature')
 
-    Scenario:
-      * call read(commonScenarios + '@startMockServer')
+  Scenario:
+    * call read(mockserver + '@startMockServer')

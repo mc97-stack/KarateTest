@@ -1,0 +1,9 @@
+{
+  "header": {
+    "requestReference": "ABC123DEF456GH78"
+  },
+  "payload": {
+    "name": "",
+    "details": "types"
+  }
+}
