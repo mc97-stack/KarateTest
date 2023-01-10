@@ -7,7 +7,7 @@ This repository contains a mock service that decorates the API endpoint availabl
 | `/v1/auth`    | GET    | Returns a one-time authentication token for accessing business functionality.               |
 | `/v1/pokemon` | PUT    | Retrieves data about a pokemon provided in the payload.                                     |
 | `/v1/archive` | POST   | Retrieves all requests made to the `/v1/pokemon` endpoint within the active server session. |
-
+ 
 This repository also contains system and smoke test suites for validating the mock server.
 
 ## API Endpoints Requiring Authentication
