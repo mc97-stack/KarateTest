@@ -1,0 +1,9 @@
+{
+  "header": {
+    "requestReference": "#regex ^[a-zA-Z0-9]{1,16}$"
+  },
+  "payload": {
+    "name": "#string",
+    "details": "#? ['types', 'abilities'].includes(_)"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "location_area_encounters": "#string",
+  "types": "#? _.length <= 2",
+  "base_experience": "#number",
+  "held_items": "#array",
+  "weight": "#number",
+  "is_default":  "#boolean",
+  "past_types": "#present",
+  "sprites":  "#object",
+  "abilities": "#array",
+  "past_abilities": "#notpresent",
+  "game_indices":  "#array",
+  "species": {
+    "name": "#present",
+    "url": "#? _.startsWith('https://pokeapi.co/api/v2/') == true"
+  },
+  "stats":  "#[6]",
+  "moves": "#? _.length > 0",
+  "name":  "#string",
+  "id": "#number",
+  "forms":  "#array",
+  "height": "#number",
+  "order": "#number"
+}
