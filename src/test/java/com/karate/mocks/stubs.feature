@@ -19,13 +19,13 @@ Feature: stateful mock server
 
     * def responseHeaders = read('this:./data/headerTemplate.json')
 
-  Scenario: pathMatches('/mgmt') && methodIs('post')
+  Scenario: pathMatches('/v1/mgmt') && methodIs('post')
     * def responseStatus = 200
 
     # Building the response for the management endpoint
     * set response.status = 'Server is online.'
-    * set response.stats.ActiveUsers = (authorisedTokens).length
-    * set response.stats.ArchiveSize = (requestStore).length
+    * set response.stats.activeUsers = (authorisedTokens).length
+    * set response.stats.archiveSize = (requestStore).length
 
   Scenario: pathMatches('/v1/auth') && methodIs('get')
     * def generateAuthToken =
@@ -42,7 +42,7 @@ Feature: stateful mock server
     * def generatedToken = generateAuthToken()
     * eval authorisedTokens.push(generatedToken)
 
-    * def responseStatus = 200
+    * def responseStatus = 201
     * def responseHeaders = { 'Content-Type': 'application/json' }
     * def response =
     """
@@ -51,13 +51,13 @@ Feature: stateful mock server
       }
     """
 
-  Scenario: pathMatches('/v1/archive') && methodIs('get')
+  Scenario: pathMatches('/v1/archive') && methodIs('post')
 
     * def isAuthorised = authorisedTokens.includes(karate.jsonPath(requestHeaders, '$.auth-token')[0])
     * if (!isAuthorised) karate.set(karate.call('this:./helpers/payloadValidator.feature@notAuthorisedResponse'))
     * if (!isAuthorised) karate.abort()
 
-    * def responseStatus = 200
+    * def responseStatus = 201
     * def responseHeaders = ''
     * set response.message-store = requestStore
     * set response.timeProcessed = getIsoDateTime()
