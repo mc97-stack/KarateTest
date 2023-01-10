@@ -1,4 +1,4 @@
 /.idea/
-/systemtest/.gradle/
-/systemtest/build/
+/.gradle/
 /target/
+/build/
