@@ -1,0 +1,17 @@
+{
+  "header": {
+    "references": {
+      "originalRequest": "",
+      "server": ""
+    },
+    "requestDateTime": "",
+    "fulfilmentDateTime": ""
+  },
+  "payload": {
+    "originalRequest": {
+      "name": "",
+      "dataRequested": ""
+    },
+    "filteredResponse": ""
+  }
+}
