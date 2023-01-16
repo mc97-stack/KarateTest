@@ -27,6 +27,7 @@ Feature:
 
   @isSupportedPokemon
   Scenario:
+#    * print karate.get('req')
     * json req = req
     * def supportPokemon = read('this:../data/external/sunMoonPokemon.json')
 
@@ -49,5 +50,17 @@ Feature:
     """
       {
         "message": "The requested pokemon name was not recognised."
+      }
+    """
+
+  @payloadNotPresent
+  Scenario:
+    * def responseStatus = 400
+    * def responseHeaders = ''
+    * def responseHeaders = { 'Content-Type': 'application/json' }
+    * def response =
+    """
+      {
+        "message": "Payload not provided."
       }
     """

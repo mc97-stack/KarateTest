@@ -4,4 +4,4 @@ Feature:
     * call read('this:../../common/hooks/scriptDependencies.feature')
 
   Scenario:
-    * minutesWait(5)
+    * minutesWait(15)

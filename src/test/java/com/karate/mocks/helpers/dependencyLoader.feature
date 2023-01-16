@@ -13,3 +13,6 @@ Feature:
     * def uuid = function(){ return java.util.UUID.randomUUID().toString() }
 
     * def getIsoDateTime = function() { return new Date().toISOString(); }
+
+    * def authorisedTokens = []
+    * def requestStore = []

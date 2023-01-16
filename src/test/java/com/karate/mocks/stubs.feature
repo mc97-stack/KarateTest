@@ -1,18 +1,31 @@
 Feature: stateful mock server
 
   Background:
-    * call read('this:./helpers/dependencyLoader.feature')
+    * callonce read('this:./helpers/dependencyLoader.feature')
     * configure cors = true
 
-    * def authorisedTokens = []
-    * def requestStore = []
-    * def response = {}
+    * def generateAuthToken =
+    """
+      function() {
+        let token = uuid();
+        while(authorisedTokens.includes(token) && authorisedTokens.length > 0)
+        {
+          token = uuid();
+        }
+        return token;
+      }
+    """
 
     * def removeStaleToken =
     """
       function(contentToRemove)
       {
-        authorisedTokens.splice(authorisedTokens.indexOf('contentToRemove'), 1);
+        let removeTokenAtIndex = 0;
+        removeTokenAtIndex = authorisedTokens.indexOf(contentToRemove);
+        if(removeTokenAtIndex >= 0)
+        {
+          authorisedTokens.splice(removeTokenAtIndex, 1);
+        }
         return authorisedTokens;
       }
     """
@@ -23,22 +36,12 @@ Feature: stateful mock server
     * def responseStatus = 200
 
     # Building the response for the management endpoint
+    * def response = {}
     * set response.status = 'Server is online.'
     * set response.stats.activeUsers = (authorisedTokens).length
     * set response.stats.archiveSize = (requestStore).length
 
   Scenario: pathMatches('/v1/auth') && methodIs('get')
-    * def generateAuthToken =
-    """
-      function() {
-        let token = uuid();
-        while(!authorisedTokens.includes(token) && authorisedTokens.length > 0)
-        {
-          token = uuid();
-        }
-        return token;
-      }
-    """
     * def generatedToken = generateAuthToken()
     * eval authorisedTokens.push(generatedToken)
 
@@ -53,29 +56,40 @@ Feature: stateful mock server
 
   Scenario: pathMatches('/v1/archive') && methodIs('post')
 
-    * def isAuthorised = authorisedTokens.includes(karate.jsonPath(requestHeaders, '$.auth-token')[0])
-    * if (!isAuthorised) karate.set(karate.call('this:./helpers/payloadValidator.feature@notAuthorisedResponse'))
-    * if (!isAuthorised) karate.abort()
+    * def tokenPresent = !(karate.match("requestHeaders.auth-token == '#notpresent'").pass)
+    * if (tokenPresent) karate.set('isAuthorised', authorisedTokens.includes(karate.jsonPath(requestHeaders, '$.auth-token')[0]))
+    * if (tokenPresent) karate.set('authorisedTokens', removeStaleToken(karate.jsonPath(requestHeaders, '$.auth-token')[0]))
 
-    * def responseStatus = 201
-    * def responseHeaders = ''
-    * set response.message-store = requestStore
-    * set response.timeProcessed = getIsoDateTime()
+    * if (!tokenPresent) karate.set(karate.call('this:./helpers/payloadValidator.feature@notAuthorisedResponse'))
+    * if (tokenPresent && !isAuthorised) karate.set(karate.call('this:./helpers/payloadValidator.feature@notAuthorisedResponse'))
 
-    * def authorisedTokens = removeStaleToken(karate.jsonPath(requestHeaders, '$.auth-token')[0])
+    * if (tokenPresent && isAuthorised) karate.set('requestStore', requestStore)
+    * if (tokenPresent && isAuthorised) karate.set(karate.call('this:./helpers/responseBuilder.feature@buildArchiveResponse'))
+    * def response = karate.get('response')
+
 
   Scenario: pathMatches('/v1/pokemon') && methodIs('put')
 
-    * def isAuthorised = authorisedTokens.includes(karate.jsonPath(requestHeaders, '$.auth-token')[0])
-    * if (!isAuthorised) karate.set(karate.call('this:./helpers/payloadValidator.feature@notAuthorisedResponse'))
-    * if (!isAuthorised) karate.abort()
+    * def tokenPresent = !(karate.match("requestHeaders.auth-token == '#notpresent'").pass)
+    * if (tokenPresent) karate.set('isAuthorised', authorisedTokens.includes(karate.jsonPath(requestHeaders, '$.auth-token')[0]))
+    * if (!tokenPresent) karate.set(karate.call('this:./helpers/payloadValidator.feature@notAuthorisedResponse'))
+    * if (tokenPresent && isAuthorised) karate.set('authorisedTokens', removeStaleToken(karate.jsonPath(requestHeaders, '$.auth-token')[0]))
+    * if (!tokenPresent) karate.abort()
 
-    * def isValidRequest = karate.match("request == karate.jsonPath(schemas, '$.request')")
+    * if (tokenPresent && !isAuthorised) karate.set(karate.call('this:./helpers/payloadValidator.feature@notAuthorisedResponse'))
+    * if (tokenPresent && !isAuthorised) karate.abort()
+
+    * karate.set('isValidRequest', karate.match("request == karate.jsonPath(schemas, '$.request')"))
     * if (!isValidRequest.pass) karate.set(karate.call('this:./helpers/payloadValidator.feature@invalidRequestPayload'))
     * if (!isValidRequest.pass) karate.abort()
 
-    * call read('this:./helpers/payloadValidator.feature@isSupportedPokemon') { req: #(request) }
-    * def isSupported = output
+    * def payloadPresent = request != null
+    * if (!payloadPresent) karate.set(karate.call('this:./helpers/payloadValidator.feature@payloadNotPresent'))
+    * if (!payloadPresent) karate.abort()
+
+    * def req = (payloadPresent)? JSON.stringify(request) : ''
+    * call read('this:./helpers/payloadValidator.feature@isSupportedPokemon') { req: #(req) }
+    * if (payloadPresent) karate.set('isSupported', output)
     * if (!isSupported.pass) karate.set(karate.call('this:./helpers/payloadValidator.feature@payloadUnsupported'))
     * if (!isSupported.pass) karate.abort()
 
@@ -84,14 +98,14 @@ Feature: stateful mock server
     * set storage.data.payload = request
     * set storage.info.endpoint = requestUri
     * set storage.info.received = getIsoDateTime()
-    * eval requestStore.push(storage)
 
-    * call read('this:./helpers/responseBuilder.feature@responseFromObject') { req: #(request) }
+    * def validationOutcome = isAuthorised && isValidRequest.pass && isSupported.pass
+    * if (validationOutcome) requestStore.push(storage)
+    * if (validationOutcome) karate.set('req', request)
+    * if (validationOutcome) karate.set(karate.call('this:./helpers/responseBuilder.feature@responseFromObject'))
 
-    * def responseStatus = 200
+    * if (tokenPresent && validationOutcome) karate.set('responseStatus', 200)
     * set response.header.requestDateTime = storage.info.received
-
-    * def authorisedTokens = removeStaleToken(karate.jsonPath(requestHeaders, '$.auth-token')[0])
 
   Scenario:
     # catch-all
