@@ -21,8 +21,7 @@ Feature:
     * def pokemon3 = "zubat"
 
 
-#    * def expTokenResponse = callonce read('classpath:helpers/authenticationToken.feature')
-#    * def expToken = expTokenResponse.authToken
+
 
   @mgmt
   Scenario: Calling the management endpoint returns the status of the server
@@ -39,8 +38,8 @@ Feature:
       | 1  | types         |
       | 2  | abilities     |
 
-
-  Scenario: Happy Path Generate token and request pokemon type/s AC 1.1
+  @happyPathTypes
+  Scenario: Happy Path Generate token and request pokemon type/s
 
     Given header auth-token = token
     Given path '/v1/pokemon'
@@ -55,7 +54,7 @@ Feature:
 
 
 
-
+  @happyPathAbilities
   Scenario: Happy Path Generate token and request pokemon abilities AC 1.1
 
     Given header auth-token = token
@@ -69,7 +68,8 @@ Feature:
     And def pokemonAbilities = response.payload.filteredResponse
     Then print 'The abilities for ' + pokemonName + ' are ' + pokemonAbilities
 
-  Scenario:  Invalid Request sent to pokemon endpoint AC 1.3 ID 1
+  @invalidToken
+  Scenario:  Invalid Request sent to pokemon endpoint
     * def token = 7
     Given header auth-token = token
     Given path '/v1/pokemon'
@@ -77,6 +77,8 @@ Feature:
     When method PUT
     Then status 403
     Then print 'Invalid request made'
+
+
   @knownBug
   Scenario: Multiple valid requests made to pokemon endpoint, stored in archives error due to token bug
     Given header auth-token = token
@@ -86,11 +88,6 @@ Feature:
     When method PUT
     Then status 200
 
-
-#       Given url 'http://localhost:' + mockserverPort + '/v1/auth'
-#       When method GET
-#       Then status 201
-#       * def token = response.token
     Given header auth-token = token1
     * print token1
     Given path '/v1/pokemon'
@@ -98,11 +95,6 @@ Feature:
     When method PUT
     Then status 403
 
-
-#       Given url 'http://localhost:' + mockserverPort + '/v1/auth'
-#       When method GET
-#       Then status 201
-#       * def token = response.token
     Given header auth-token = token2
     * print token2
     Given path '/v1/pokemon'
@@ -110,18 +102,13 @@ Feature:
     When method PUT
     Then status 403
 
-
-#       Given url 'http://localhost:' + mockserverPort + '/v1/auth'
-#       When method GET
-#       Then status 201
-#       * def token = response.token
     Given header auth-token = token3
     * print token3
     Given path '/v1/archive'
     When method POST
     Then status 403
 
-
+  @validMgmt
   Scenario: Valid request sent to Management end point and amount of users / archive size printed
     Given url 'http://localhost:' + mockserverPort + '/v1/mgmt'
     When method POST
@@ -130,21 +117,23 @@ Feature:
     And def currentArchiveSize = response.stats.archiveSize
     Then print 'The amount of active users are ' + activePeople + ' and the current archive is of size ' + currentArchiveSize
 
-  Scenario: Ability match with PokeAPI
+  @pokeApiAssert
+  Scenario: Ability match with PokeAPI for ditto
     * def pokemon = 'ditto'
     Given url 'https://pokeapi.co/api/v2/pokemon/' + pokemon
     When method GET
     Then status 200
-    And match response.abilities[*].ability.name contains 'limber'
+    And match response.abilities[*].ability.name contains ['limber','imposter']
 
+  @evalTesting
   Scenario: Eval
 #    * def pokemon = 'ditto'
     Given url 'https://pokeapi.co/api/v2/pokemon/' + pokemon1
     When method GET
     Then status 200
-    And match response.abilities[*].ability.name contains ['limber','imposter']
     And match response.abilities[*].ability.name == "#array"
     And match each response.abilities[*].ability.name == "#string"
+    And match response.abilities[*].ability.name contains ['limber','imposter']
 #    And match response.abilities[*].ability.name contains 'limber'
 #    * def rtnAbil = $response.abilities[?(@.abilities=='abilities')]
 #    * def pokAbility = $rtnAbil..ability
@@ -152,6 +141,7 @@ Feature:
 #    * eval Collections.sort(pokAbility)
 #    * print pokAbility
 
+  @happyPathArchive
   Scenario:  Stored in Archives
 
     Given header auth-token = token
@@ -160,7 +150,7 @@ Feature:
     Then status 201
     Then print 'Now stored on the archive'
 
-  @redo
+  @schemaInfoAlignment
   Scenario: Compare pokeApi and localApi
 
     Given header auth-token = token
@@ -184,7 +174,7 @@ Feature:
 
 
 
-
+  @invalidPayload
   Scenario Outline: Happy Path with invalid payload (requestRef as integer)
 
     Given header auth-token = token
@@ -207,7 +197,7 @@ Feature:
 
 
 
-
+  @managementStatus
   Scenario: Valid request sent to management endpoint
     Given path '/v1/mgmt'
     When method POST
