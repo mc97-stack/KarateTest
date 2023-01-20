@@ -53,6 +53,7 @@ Feature: stateful mock server
         "token": #(generatedToken)
       }
     """
+    * print authorisedTokens
 
   Scenario: pathMatches('/v1/archive') && methodIs('post')
 
@@ -75,6 +76,7 @@ Feature: stateful mock server
     * if (!tokenPresent) karate.set(karate.call('this:./helpers/payloadValidator.feature@notAuthorisedResponse'))
     * if (tokenPresent && isAuthorised) karate.set('authorisedTokens', removeStaleToken(karate.jsonPath(requestHeaders, '$.auth-token')[0]))
     * if (!tokenPresent) karate.abort()
+    * print authorisedTokens
 
     * if (tokenPresent && !isAuthorised) karate.set(karate.call('this:./helpers/payloadValidator.feature@notAuthorisedResponse'))
     * if (tokenPresent && !isAuthorised) karate.abort()

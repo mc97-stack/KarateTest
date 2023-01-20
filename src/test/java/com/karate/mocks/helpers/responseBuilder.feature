@@ -54,17 +54,7 @@ Feature:
 
     * set response.payload.filteredResponse = karate.jsonPath(extResponse, customJsonPath)
 
-    * set response.payload.additionalInformation.info.pokedexNumber = karate.jsonPath(extResponse, '$.id')
-    * set response.payload.additionalInformation.info.weight = karate.jsonPath(extResponse, '$.weight')
-    * set response.payload.additionalInformation.info.base_experience = karate.jsonPath(extResponse, '$.base_experience')
-    * set response.payload.additionalInformation.stats.hp = karate.jsonPath(extResponse, "$.stats[?(@.stat.name == 'hp')].base_stat")[0]
-    * set response.payload.additionalInformation.stats.atk = karate.jsonPath(extResponse, "$.stats[?(@.stat.name == 'attack')].base_stat")[0]
-    * set response.payload.additionalInformation.stats.def = karate.jsonPath(extResponse, "$.stats[?(@.stat.name == 'defense')].base_stat")[0]
-    * set response.payload.additionalInformation.stats.spAtk = karate.jsonPath(extResponse, "$.stats[?(@.stat.name == 'special-attack')].base_stat")[0]
-    * set response.payload.additionalInformation.stats.spDef = karate.jsonPath(extResponse, "$.stats[?(@.stat.name == 'special-defense')].base_stat")[0]
-    * set response.payload.additionalInformation.stats.speed = karate.jsonPath(extResponse, "$.stats[?(@.stat.name == 'speed')].base_stat")[0]
-
-    # Request fulfilled
+        # Request fulfilled
     * set response.header.fulfilmentDateTime = getIsoDateTime()
 
     * eval ++requestCounter
