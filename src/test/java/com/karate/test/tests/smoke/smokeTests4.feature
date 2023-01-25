@@ -68,6 +68,7 @@ Feature:
     And print response.stats.archiveSize
     And match response.stats.activeUsers == 0
 
+
     Given header auth-token = token
     Given path '/v1/archive'
     When method POST
