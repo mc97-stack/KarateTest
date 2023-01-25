@@ -30,17 +30,50 @@ Feature:
     When method POST
     Then status 200
     And match response.stats.activeUsers == activeUsers.length
+    * print activeUsers.length + ' amount of active users'
     And match response.stats.archiveSize == archiveSub.length
+    * print archiveSub.length + ' size of archive'
 #    * def result3 = call read('@smokeTest1.feature@1.2invalidAuth') When you run this the management breaks - bug
 
   @4.1bug1
   Scenario: mgmt bug that has an infinite loop
+    * def tokenResponse = call read('classpath:helpers/authenticationToken.feature')
+    * def token = tokenResponse.authToken
     * def activeUsers = []
     * def archiveSub = []
     * def result1 = call read('smokeTests1.feature@1.1forTypes')
     * def result2 = call read('smokeTests1.feature@1.1forAbilities')
     * def result3 = call read('@smokeTest1.feature@1.2invalidAuth')
 
+  @4.1
+  Scenario: Auth tokens wipe out
+    * def situation = call read('smokeTests4.feature@4.1mgmtComparison')
+    * def tokenResponse = call read('classpath:helpers/authenticationToken.feature')
+    * def token = tokenResponse.authToken
+    * print token + 'This is the first token'
+    * def tokenResponse = call read('classpath:helpers/authenticationToken.feature')
+    * def token2 = tokenResponse.authToken
+    * print token2 + 'This is the second token'
+    * print 'Active users should now be 2'
+    Given header auth-token = token2
+    Given path '/v1/pokemon'
+    And request {"header": {"requestReference": "ABC123DEF456GH78"},"payload": {"name": "#(pokemon3)","details": "types"}}
+    When method PUT
+    Then status 200
+
+    Given path '/v1/mgmt'
+    When method POST
+    Then status 200
+    And print response.stats.activeUsers
+    And print response.stats.archiveSize
+    And match response.stats.activeUsers == 0
+
+    Given header auth-token = token
+    Given path '/v1/archive'
+    When method POST
+    Then status 403
+    And match response.message contains 'present a valid token'
+    Then print 'Unrecognised token used so access is not authorised, 403 error forbidden'
 
 
 
